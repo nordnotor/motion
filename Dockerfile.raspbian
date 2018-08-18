@@ -1,10 +1,11 @@
-FROM ubuntu:18.04
+FROM resin/rpi-raspbian:jessie
 
 MAINTAINER Vlad Tuznichenko <vlad.tuznichenko@gmail.com>
 
 # Arg
 ARG ROOTFS_DIR="./rootfs"
 
+# Env
 ENV PUID=1000 \
     PGID=1000 \
     MODE="prod" \
@@ -13,15 +14,14 @@ ENV PUID=1000 \
 ENV VERSION 4.1.1
 ENV URL https://github.com/Motion-Project/motion/archive/release-${VERSION}.tar.gz
 
-RUN apt-get upgrade && apt-get update && apt-get install -y  \
+RUN  apt update && apt upgrade && apt-get install -y  \
     libmysqlclient-dev \
-    libjpeg-turbo8-dev \
+    libturbojpeg-dev \
     build-essential \
     libavdevice-dev \
     libavformat-dev \
     libswscale-dev \
     libavcodec-dev \
-    libjpeg-turbo8 \
     libavutil-dev \
     libwebp-dev \
     libjpeg-dev \
@@ -35,6 +35,10 @@ RUN apt-get upgrade && apt-get update && apt-get install -y  \
     git \
     tar
 
+# Add user
+RUN usermod -u ${PUID} -s /bin/sh www-data && groupmod -g ${PGID} www-data
+
+# Make motion
 ADD ${URL} /usr/local/motion/motion.tar.gz
 
 RUN cd /usr/local/motion/ && tar -xvzf motion.tar.gz \
@@ -44,8 +48,6 @@ RUN cd /usr/local/motion/ && tar -xvzf motion.tar.gz \
   && make \
   && make install \
   && rm /usr/local/motion/motion.tar.gz
-
-RUN ls -la /usr/local/
 
 # Copy files
 COPY ${ROOTFS_DIR}/scripts/command /usr/bin/command
@@ -58,14 +60,14 @@ COPY ${ROOTFS_DIR}/motion/conf/camera /usr/local/etc/motion/camera
 # Add commands
 RUN ln -s /usr/bin/command/wait-for.sh /usr/bin/wait-for
 
-# Permission
+# Permissions
+RUN mkdir -p /tmp/motion
+RUN chown -R www-data:www-data /usr/local/etc/motion/ /tmp/motion
 RUN chmod -R +x /usr/local/etc/motion/event /usr/bin/command /usr/bin/entrypoint
-
-RUN mkdir -p /etc/motion/ /tmp/motion
 
 WORKDIR /
 
-EXPOSE 8080
+EXPOSE 80 90-92
 
 ENTRYPOINT ["/usr/bin/entrypoint"]
 
