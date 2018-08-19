@@ -36,9 +36,6 @@ RUN apt-get upgrade && apt-get update && apt-get install -y  \
     git \
     tar
 
-# Add user
-RUN usermod -u ${PUID} -s /bin/sh www-data && groupmod -g ${PGID} www-data
-
 # Make motion
 ADD ${URL} /usr/local/motion/motion.tar.gz
 
