@@ -2,7 +2,7 @@ FROM resin/rpi-raspbian:jessie
 
 MAINTAINER Vlad Tuznichenko <vlad.tuznichenko@gmail.com>
 
-# Arg
+# Arg 1111111111111111111111111
 ARG ROOTFS_DIR="./rootfs"
 
 # Env
